@@ -1,16 +1,49 @@
-# React + Vite
+# 🚀 NexAI — Modern AI SaaS Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+NexAI is a modern, responsive AI SaaS platform frontend built with React and Vite. The project focuses on creating a clean, professional user experience with reusable components, smooth animations, theme switching, responsive layouts, and modern frontend development practices.
 
-Currently, two official plugins are available:
+## 🌐 Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Live Demo:** Coming soon
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🎨 Modern and clean user interface
+- 📱 Fully responsive design
+- 🌙 Dark and light mode
+- 🧩 Reusable React components
+- ⚡ Fast Vite development environment
+- 🎬 Smooth UI animations
+- 🔐 Login and registration pages
+- 📧 Contact section
+- 💰 Pricing section
+- 💬 Testimonials
+- ❓ FAQ section
+- 🧭 Client-side routing
+- 🔎 SEO metadata
+- ⚡ Lazy-loaded React components
+- 📱 Responsive mobile navigation
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- JavaScript (ES6+)
+- Tailwind CSS
+- React Router
+- Framer Motion
+- AOS
+- React Icons
+- React Hook Form
+- React Helmet Async
+
+## 📂 Project Structure
+
+```text
+src/
+├── assets/
+├── components/
+├── pages/
+├── context/
+├── App.jsx
+└── main.jsx
