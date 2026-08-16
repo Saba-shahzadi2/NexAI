@@ -4,7 +4,7 @@ NexAI is a modern, responsive AI SaaS platform frontend built with React and Vit
 
 ## 🌐 Live Demo
 
-**Live Demo:** Coming soon
+[Visit NexAI Live Demo](https://adorable-alfajores-d75cb4.netlify.app/)
 
 ## ✨ Features
 
