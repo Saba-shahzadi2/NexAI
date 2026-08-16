@@ -4,6 +4,8 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
+import React from "react";
+import { HelmetProvider } from "react-helmet-async";
 
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
@@ -27,9 +29,13 @@ function AppWrapper() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ThemeProvider>
-    <BrowserRouter>
-      <AppWrapper />
-    </BrowserRouter>
-  </ThemeProvider>,
+  <React.StrictMode>
+    <HelmetProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AppWrapper />
+        </BrowserRouter>
+      </ThemeProvider>
+    </HelmetProvider>
+  </React.StrictMode>,
 );

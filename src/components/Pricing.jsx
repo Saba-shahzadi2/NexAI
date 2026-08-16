@@ -18,6 +18,8 @@ const Pricing = () => {
       // // Dummy API call Simulation
       // await fetch("https://jsonplaceholder.typicode.com/posts");
 
+      // axios.get("/api/plans")
+
       setPlans([
         {
           name: "Starter",

@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
-import { HelmetProvider } from "react-helmet-async";
+
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -32,7 +32,7 @@ const App = () => {
   }, []);
 
   return (
-    <HelmetProvider>
+    <>
       <Navbar />
       <ScrollToTop />
       <Suspense
@@ -64,7 +64,7 @@ const App = () => {
       </Suspense>
 
       <Footer />
-    </HelmetProvider>
+    </>
   );
 };
 
