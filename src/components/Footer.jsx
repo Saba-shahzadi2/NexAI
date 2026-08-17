@@ -60,7 +60,7 @@ const Footer = () => {
           {/* Social Links */}
           <div className="flex gap-5 text-gray-400 dark:text-gray-500">
             <a
-              href="https://github.com/Saba-shahzadi2/mern-ecommerce"
+              href="https://github.com/Saba-shahzadi2/NexAI"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
@@ -70,7 +70,7 @@ const Footer = () => {
             </a>
 
             <a
-              href="https://www.linkedin.com/in/sabashahzadi-mern"
+              href="https://www.linkedin.com/in/sabashahzadi-mern/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
