@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Button from "./Button";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -9,18 +12,54 @@ const ContactSection = () => {
     message: "",
   });
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    toast.success("Message sent successfully");
+    if (!formData.name.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
 
-    // await axios.post("/api/contact", formData);
+    if (!formData.email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
 
-    setFormData({
-      name: "",
-      email: "",
-      message: "",
-    });
+    if (!formData.message.trim()) {
+      toast.error("Please enter your message");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(`${API_URL}/contact`, {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        message: formData.message.trim(),
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Message sent successfully");
+
+        setFormData({
+          name: "",
+          email: "",
+          message: "",
+        });
+      }
+    } catch (error) {
+      console.error("Contact Error:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to send message. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,68 +70,101 @@ const ContactSection = () => {
           <h2 className="text-4xl font-extrabold tracking-tight mb-3">
             Contact Us
           </h2>
+
           <p className="text-gray-600 dark:text-gray-400">
             Have questions? We'd love to hear from you. Drop us a message below.
           </p>
         </div>
 
-        {/* Professional Styled Form */}
+        {/* Contact Form */}
         <form
           onSubmit={handleSubmit}
           className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
         >
+          {/* Name */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="contact-name"
+              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
+            >
               Your Name
             </label>
+
             <input
+              id="contact-name"
               name="name"
               value={formData.name}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({
+                  ...formData,
+                  name: e.target.value,
+                })
               }
               type="text"
               placeholder="John Doe"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+              autoComplete="name"
               required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="contact-email"
+              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
+            >
               Email Address
             </label>
+
             <input
+              id="contact-email"
               name="email"
               value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
+                setFormData({
+                  ...formData,
+                  email: e.target.value,
+                })
               }
               type="email"
               placeholder="john@example.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+              autoComplete="email"
               required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
             />
           </div>
 
+          {/* Message */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="contact-message"
+              className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
+            >
               Message
             </label>
+
             <textarea
+              id="contact-message"
               rows="4"
               placeholder="Type your message here..."
               name="message"
               value={formData.message}
               onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
+                setFormData({
+                  ...formData,
+                  message: e.target.value,
+                })
               }
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition resize-none"
               required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition resize-none"
             ></textarea>
           </div>
 
-          <Button type="submit">Send Message</Button>
+          {/* Submit */}
+          <Button type="submit" disabled={loading}>
+            {loading ? "Sending..." : "Send Message"}
+          </Button>
         </form>
       </div>
     </section>

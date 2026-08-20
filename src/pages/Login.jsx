@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { Helmet } from "react-helmet-async";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -12,22 +17,35 @@ const Login = () => {
     password: "",
   });
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!formData.email || !formData.password) {
+    // Validation
+    if (!email || !password) {
       toast.error("Please fill all fields");
       return;
     }
 
-    if (!emailRegex.test(formData.email)) {
+    if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email");
       return;
     }
 
-    if (formData.password.length < 8) {
+    if (password.length < 8) {
       toast.error("Password must be at least 8 characters");
       return;
     }
@@ -35,18 +53,53 @@ const Login = () => {
     try {
       setLoading(true);
 
-      // TODO: Firebase/Auth API Login Here
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      toast.success("Login successful");
+      const data = response.data;
 
+      if (!data.success) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Save authentication data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      toast.success(data.message || "Login successful");
+
+      // Clear form
       setFormData({
         email: "",
         password: "",
       });
+
+      // Redirect to home
+      navigate("/");
     } catch (error) {
-      console.error(error);
-      toast.error("Login failed");
+      console.error("Login Error:", error);
+
+      if (error.response) {
+        toast.error(
+          error.response.data?.message || "Invalid email or password",
+        );
+      } else if (error.request) {
+        toast.error(
+          "Unable to connect to server. Please make sure the backend is running.",
+        );
+      } else {
+        toast.error(error.message || "Login failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -56,6 +109,7 @@ const Login = () => {
     <>
       <Helmet>
         <title>Login | NexAI</title>
+
         <meta
           name="description"
           content="Login to your NexAI account to access AI-powered solutions and automate your workflows."
@@ -76,7 +130,7 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Form */}
+          {/* Login Form */}
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
@@ -96,14 +150,9 @@ const Login = () => {
                 type="email"
                 placeholder="john@example.com"
                 autoComplete="email"
-                required
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    email: e.target.value,
-                  })
-                }
+                onChange={handleChange}
+                required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
               />
             </div>
@@ -125,15 +174,10 @@ const Login = () => {
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   minLength={8}
-                  required
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition pr-20"
                 />
 
                 <button
@@ -146,6 +190,7 @@ const Login = () => {
                 </button>
               </div>
 
+              {/* Forgot Password */}
               <div className="mt-2 text-right">
                 <NavLink
                   to="/forgot-password"
@@ -156,14 +201,17 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Login Button */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Logging in...
+                </>
               ) : (
                 "Login"
               )}

@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { Helmet } from "react-helmet-async";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const Register = () => {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -12,33 +17,78 @@ const Register = () => {
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!formData.name || !formData.email || !formData.password) {
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
+
+    if (!name || !email || !password) {
       toast.error("Please fill all fields");
       return;
     }
 
-    if (!emailRegex.test(formData.email)) {
+    if (name.length < 2) {
+      toast.error("Name must be at least 2 characters");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email");
       return;
     }
 
-    if (formData.password.length < 8) {
+    if (password.length < 8) {
       toast.error("Password must be at least 8 characters");
       return;
     }
 
-    toast.success("Registered successfully");
+    try {
+      setLoading(true);
 
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-    });
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      // Save authentication data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      toast.success(data.message || "Registration successful");
+
+      // Clear form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+      });
+
+      // Redirect to login
+      navigate("/login");
+    } catch (error) {
+      console.error("Register Error:", error);
+
+      toast.error(error.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -169,9 +219,14 @@ const Register = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              Register
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                "Register"
+              )}
             </button>
 
             {/* Login Link */}

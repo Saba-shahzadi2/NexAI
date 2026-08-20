@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,15 +30,29 @@ const ForgotPassword = () => {
     try {
       setLoading(true);
 
-      // TODO: Firebase / API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const normalizedEmail = email.trim().toLowerCase();
 
-      toast.success("Reset link sent to your email");
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+        email: normalizedEmail,
+      });
 
-      setEmail("");
+      if (response.data.success) {
+        localStorage.setItem("resetEmail", normalizedEmail);
+        localStorage.removeItem("resetOTP");
+
+        toast.success("OTP sent to your email");
+
+        setEmail("");
+
+        navigate("/verify-otp");
+      }
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
+      console.error("Forgot Password Error:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to send OTP. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -51,23 +70,20 @@ const ForgotPassword = () => {
 
       <section className="bg-gray-50 dark:bg-gray-900 py-20 text-gray-900 dark:text-white transition-colors duration-300">
         <div className="max-w-2xl mx-auto px-6">
-          {/* Heading */}
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight mb-3">
               Forgot Your Password?
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400">
-              Enter your email and we’ll send you a password reset link.
+              Enter your email and we'll send you a password reset OTP.
             </p>
           </div>
 
-          {/* Form */}
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
           >
-            {/* Email */}
             <div>
               <label
                 htmlFor="email"
@@ -85,19 +101,18 @@ const ForgotPassword = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+                required
               />
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? "Sending..." : "Send OTP"}
             </button>
 
-            {/* Back to Login */}
             <p className="text-center text-gray-600 dark:text-gray-400">
               Remember your password?
               <NavLink
