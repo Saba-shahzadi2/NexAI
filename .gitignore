@@ -6,3 +6,5 @@ dist/
 build/
 *.log
 _backup_before_fixes_*/
+
+.history/

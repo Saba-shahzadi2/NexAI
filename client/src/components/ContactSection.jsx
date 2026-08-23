@@ -14,21 +14,47 @@ const ContactSection = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      toast.error("Please enter your name");
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const message = formData.message.trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Validation
+    if (!name || !email || !message) {
+      toast.error("Please fill all fields");
       return;
     }
 
-    if (!formData.email.trim()) {
-      toast.error("Please enter your email");
+    if (name.length < 2) {
+      toast.error("Name must be at least 2 characters");
       return;
     }
 
-    if (!formData.message.trim()) {
-      toast.error("Please enter your message");
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+
+    if (message.length < 10) {
+      toast.error("Message must be at least 10 characters");
+      return;
+    }
+
+    if (message.length > 5000) {
+      toast.error("Message cannot exceed 5000 characters");
       return;
     }
 
@@ -36,9 +62,9 @@ const ContactSection = () => {
       setLoading(true);
 
       const response = await axios.post(`${API_URL}/contact`, {
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        message: formData.message.trim(),
+        name,
+        email,
+        message,
       });
 
       if (response.data.success) {
@@ -65,7 +91,7 @@ const ContactSection = () => {
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
       <div className="max-w-xl mx-auto px-6" data-aos="fade-up">
-        {/* Section Heading */}
+        {/* Heading */}
         <div className="text-center mb-10">
           <h2 className="text-4xl font-extrabold tracking-tight mb-3">
             Contact Us
@@ -76,7 +102,7 @@ const ContactSection = () => {
           </p>
         </div>
 
-        {/* Contact Form */}
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
@@ -93,16 +119,13 @@ const ContactSection = () => {
             <input
               id="contact-name"
               name="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  name: e.target.value,
-                })
-              }
               type="text"
               placeholder="John Doe"
               autoComplete="name"
+              value={formData.name}
+              onChange={handleChange}
+              minLength={2}
+              maxLength={100}
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
             />
@@ -120,16 +143,11 @@ const ContactSection = () => {
             <input
               id="contact-email"
               name="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  email: e.target.value,
-                })
-              }
               type="email"
               placeholder="john@example.com"
               autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
             />
@@ -146,19 +164,20 @@ const ContactSection = () => {
 
             <textarea
               id="contact-message"
-              rows="4"
-              placeholder="Type your message here..."
               name="message"
+              rows={5}
+              placeholder="Type your message here..."
               value={formData.message}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  message: e.target.value,
-                })
-              }
+              onChange={handleChange}
+              minLength={10}
+              maxLength={5000}
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition resize-none"
-            ></textarea>
+            />
+
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-right">
+              {formData.message.length}/5000
+            </p>
           </div>
 
           {/* Submit */}

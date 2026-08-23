@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { toast } from "react-toastify";
 import { Helmet } from "react-helmet-async";
-import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +43,7 @@ const Login = () => {
     }
 
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email");
+      toast.error("Please enter a valid email address");
       return;
     }
 
@@ -72,9 +74,14 @@ const Login = () => {
         throw new Error(data.message || "Login failed");
       }
 
-      // Save authentication data
+      // Save JWT
       localStorage.setItem("token", data.token);
+
+      // Save user
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Update Navbar immediately
+      window.dispatchEvent(new Event("authChange"));
 
       toast.success(data.message || "Login successful");
 
@@ -84,8 +91,15 @@ const Login = () => {
         password: "",
       });
 
-      // Redirect to home
-      navigate("/");
+      /*
+        If user was redirected to login from a protected page,
+        return them there.
+
+        Otherwise go to Home.
+      */
+      const from = location.state?.from?.pathname || "/";
+
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login Error:", error);
 
@@ -112,122 +126,134 @@ const Login = () => {
 
         <meta
           name="description"
-          content="Login to your NexAI account to access AI-powered solutions and automate your workflows."
+          content="Login to your NexAI account and access powerful AI-powered solutions."
         />
       </Helmet>
 
-      <section className="bg-gray-50 dark:bg-gray-900 py-20 text-gray-900 dark:text-white transition-colors duration-300">
-        <div className="max-w-2xl mx-auto px-6">
+      <section className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300 pt-28 pb-16">
+        <div className="max-w-md mx-auto px-6">
           {/* Heading */}
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-extrabold tracking-tight mb-3">
-              Login to Your Account
-            </h2>
+          <div className="text-center mb-8" data-aos="fade-up">
+            <h1 className="text-4xl font-extrabold tracking-tight mb-3">
+              Welcome Back
+            </h1>
 
             <p className="text-gray-600 dark:text-gray-400">
-              Welcome back to NexAI. Enter your credentials to continue using
-              our AI-powered platform.
+              Login to your NexAI account and continue your journey.
             </p>
           </div>
 
-          {/* Login Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
+          {/* Login Card */}
+          <div
+            className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700/50"
+            data-aos="fade-up"
           >
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-              >
-                Email Address
-              </label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
+                >
+                  Email Address
+                </label>
 
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="john@example.com"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </label>
-
-              <div className="relative">
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  minLength={8}
-                  value={formData.password}
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition pr-20"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
                 />
-
-                <button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-600 hover:text-blue-700"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
               </div>
 
-              {/* Forgot Password */}
-              <div className="mt-2 text-right">
-                <NavLink
-                  to="/forgot-password"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Forgot Password?
-                </NavLink>
+              {/* Password */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    Password
+                  </label>
+
+                  <NavLink
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    Forgot Password?
+                  </NavLink>
+                </div>
+
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    minLength={8}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600 transition"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Logging in...
-                </>
-              ) : (
-                "Login"
-              )}
-            </button>
-
-            {/* Register Link */}
-            <p className="text-center text-gray-600 dark:text-gray-400">
-              Don't have an account?
-              <NavLink
-                to="/register"
-                className="text-blue-600 hover:underline ml-1"
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Register
-              </NavLink>
-            </p>
-          </form>
+                {loading ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    Login
+                    <FaArrowRight className="text-sm" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Register */}
+            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
+              <p className="text-gray-600 dark:text-gray-400">
+                Don't have an account?
+                <NavLink
+                  to="/register"
+                  className="ml-1 text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                >
+                  Create Account
+                </NavLink>
+              </p>
+            </div>
+          </div>
+
+          {/* Security Text */}
+          <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-6">
+            Your account information is securely protected.
+          </p>
         </div>
       </section>
     </>

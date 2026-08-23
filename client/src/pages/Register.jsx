@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { toast } from "react-toastify";
 import { Helmet } from "react-helmet-async";
+import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
@@ -17,15 +17,25 @@ const Register = () => {
     password: "",
   });
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const name = formData.name.trim();
     const email = formData.email.trim().toLowerCase();
     const password = formData.password;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Validation
     if (!name || !email || !password) {
       toast.error("Please fill all fields");
       return;
@@ -63,13 +73,15 @@ const Register = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.message || "Registration failed");
       }
 
       // Save authentication data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      window.dispatchEvent(new Event("authChange"));
 
       toast.success(data.message || "Registration successful");
 
@@ -80,8 +92,8 @@ const Register = () => {
         password: "",
       });
 
-      // Redirect to login
-      navigate("/login");
+      // User is already authenticated
+      navigate("/");
     } catch (error) {
       console.error("Register Error:", error);
 
@@ -104,7 +116,6 @@ const Register = () => {
 
       <section className="bg-gray-50 dark:bg-gray-900 py-20 text-gray-900 dark:text-white transition-colors duration-300">
         <div className="max-w-2xl mx-auto px-6">
-          {/* Heading */}
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight mb-3">
               Register an Account
@@ -117,7 +128,6 @@ const Register = () => {
             </p>
           </div>
 
-          {/* Form */}
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
@@ -140,12 +150,7 @@ const Register = () => {
                 minLength={2}
                 autoComplete="name"
                 required
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    name: e.target.value,
-                  })
-                }
+                onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
               />
             </div>
@@ -167,12 +172,7 @@ const Register = () => {
                 value={formData.email}
                 autoComplete="email"
                 required
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    email: e.target.value,
-                  })
-                }
+                onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
               />
             </div>
@@ -196,13 +196,8 @@ const Register = () => {
                   minLength={8}
                   autoComplete="new-password"
                   required
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition pr-20"
                 />
 
                 <button
@@ -223,9 +218,12 @@ const Register = () => {
               className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating Account...
+                </>
               ) : (
-                "Register"
+                "Create Account"
               )}
             </button>
 

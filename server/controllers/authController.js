@@ -209,6 +209,56 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+// Verify OTP
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP or email",
+      });
+    }
+
+    if (
+      !user.resetOTP ||
+      user.resetOTP !== otp ||
+      !user.resetOTPExpires ||
+      user.resetOTPExpires < new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
 //reset password
 export const resetPassword = async (req, res) => {
   try {
@@ -267,6 +317,32 @@ export const resetPassword = async (req, res) => {
     });
   } catch (error) {
     console.error("Reset Password Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+// Get user details for authenticated user
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("_id name email");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Get Me Error:", error);
 
     return res.status(500).json({
       success: false,
