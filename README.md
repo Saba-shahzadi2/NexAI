@@ -1,49 +1,152 @@
 # 🚀 NexAI — Modern AI SaaS Platform
 
-NexAI is a modern, responsive AI SaaS platform frontend built with React and Vite. The project focuses on creating a clean, professional user experience with reusable components, smooth animations, theme switching, responsive layouts, and modern frontend development practices.
+NexAI is a modern, responsive AI SaaS platform built with a clean and professional user interface.
 
-## 🌐 Live Demo
+The project demonstrates a complete full-stack authentication workflow, protected routes, password recovery with OTP verification, contact form integration, responsive navigation, dark/light mode, and a scalable React + Node.js architecture.
 
-[Visit NexAI Live Demo](https://adorable-alfajores-d75cb4.netlify.app/)
+---
 
 ## ✨ Features
 
-- 🎨 Modern and clean user interface
-- 📱 Fully responsive design
-- 🌙 Dark and light mode
-- 🧩 Reusable React components
-- ⚡ Fast Vite development environment
-- 🎬 Smooth UI animations
-- 🔐 Login and registration pages
-- 📧 Contact section
-- 💰 Pricing section
-- 💬 Testimonials
-- ❓ FAQ section
-- 🧭 Client-side routing
-- 🔎 SEO metadata
-- ⚡ Lazy-loaded React components
-- 📱 Responsive mobile navigation
+### 🔐 Authentication
 
-## 🛠️ Tech Stack
+- User Registration
+- User Login
+- JWT-based authentication
+- Secure password hashing with bcrypt
+- Persistent login using localStorage
+- Logout functionality
+- Protected routes
+- Current authenticated user endpoint
+
+### 🔑 Password Recovery
+
+- Forgot Password
+- Email-based OTP generation
+- OTP expiration
+- OTP verification
+- Password reset
+- Secure password hashing after reset
+
+### 🎨 UI & UX
+
+- Modern SaaS-style interface
+- Responsive design
+- Mobile navigation menu
+- Dark / Light mode
+- Smooth animations
+- AOS scroll animations
+- Framer Motion animations
+- Toast notifications
+- Loading states
+- Professional form validation
+
+### 📩 Contact System
+
+- Contact form
+- Name validation
+- Email validation
+- Message validation
+- Backend API integration
+- MongoDB contact storage
+- Success/error notifications
+
+### 🛡️ Protected Pages
+
+Authenticated users can access protected application pages such as:
+
+- Features
+- Pricing
+
+Unauthenticated users are redirected to the Login page.
+
+---
+
+## 🧰 Tech Stack
+
+### Frontend
 
 - React
 - Vite
-- JavaScript (ES6+)
+- JavaScript
 - Tailwind CSS
-- React Router
+- React Router DOM
+- Axios
 - Framer Motion
 - AOS
 - React Icons
-- React Hook Form
+- React Toastify
 - React Helmet Async
 
-## 📂 Project Structure
+### Backend
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcryptjs
+- Nodemailer
+- CORS
+- dotenv
+
+---
+
+## 📁 Project Architecture
 
 ```text
-src/
-├── assets/
-├── components/
-├── pages/
-├── context/
-├── App.jsx
-└── main.jsx
+NexAI/
+│
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   └── ScrollToTop.jsx
+│   │   │
+│   │   ├── context/
+│   │   │   └── ThemeContext.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── Home.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── ForgotPassword.jsx
+│   │   │   ├── VerifyOTP.jsx
+│   │   │   ├── ResetPassword.jsx
+│   │   │   ├── Features.jsx
+│   │   │   ├── Pricing.jsx
+│   │   │   ├── About.jsx
+│   │   │   └── Contact.jsx
+│   │   │
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   └── .env
+│
+├── server/
+│   ├── config/
+│   │   └── db.js
+│   │
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   └── contactController.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   │
+│   ├── models/
+│   │   ├── User.js
+│   │   └── Contact.js
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   └── contactRoutes.js
+│   │
+│   ├── .env
+│   └── server.js
+│
+├── README.md
+└── .gitignore
