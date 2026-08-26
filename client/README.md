@@ -34,7 +34,6 @@ NexAI is a modern, responsive AI SaaS platform frontend built with React and Vit
 - Framer Motion
 - AOS
 - React Icons
-- React Hook Form
 - React Helmet Async
 
 ## 📂 Project Structure

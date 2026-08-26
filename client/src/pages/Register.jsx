@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { useAuth } from "../context/AuthContext";
+import { registerUser } from "../api/authAPI";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,29 +60,19 @@ const Register = () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+      // Centralized API call
+      const data = await registerUser({
+        name,
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || "Registration failed");
       }
 
-      // Save authentication data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      window.dispatchEvent(new Event("authChange"));
+      // Update global authentication state
+      login(data.token, data.user);
 
       toast.success(data.message || "Registration successful");
 
@@ -93,11 +84,19 @@ const Register = () => {
       });
 
       // User is already authenticated
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Register Error:", error);
 
-      toast.error(error.message || "Registration failed");
+      if (error.response) {
+        toast.error(error.response.data?.message || "Registration failed");
+      } else if (error.request) {
+        toast.error(
+          "Unable to connect to server. Please make sure the backend is running.",
+        );
+      } else {
+        toast.error(error.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,6 +115,7 @@ const Register = () => {
 
       <section className="bg-gray-50 dark:bg-gray-900 py-20 text-gray-900 dark:text-white transition-colors duration-300">
         <div className="max-w-2xl mx-auto px-6">
+          {/* Heading */}
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight mb-3">
               Register an Account
@@ -128,6 +128,7 @@ const Register = () => {
             </p>
           </div>
 
+          {/* Register Form */}
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-xl"
@@ -197,7 +198,7 @@ const Register = () => {
                   autoComplete="new-password"
                   required
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition pr-20"
+                  className="w-full px-4 py-3 pr-20 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
                 />
 
                 <button

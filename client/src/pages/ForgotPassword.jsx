@@ -2,9 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { forgotPassword } from "../api/authAPI";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -32,13 +30,11 @@ const ForgotPassword = () => {
 
       const normalizedEmail = email.trim().toLowerCase();
 
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, {
-        email: normalizedEmail,
-      });
+      const response = await forgotPassword(normalizedEmail);
 
-      if (response.data.success) {
-        localStorage.setItem("resetEmail", normalizedEmail);
-        localStorage.removeItem("resetOTP");
+      if (response.success) {
+        sessionStorage.setItem("resetEmail", normalizedEmail);
+        sessionStorage.removeItem("resetToken");
 
         toast.success("OTP sent to your email");
 

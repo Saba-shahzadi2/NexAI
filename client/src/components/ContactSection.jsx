@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Button from "./Button";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { submitContact } from "../api/contactAPI";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -61,14 +59,14 @@ const ContactSection = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post(`${API_URL}/contact`, {
+      const data = await submitContact({
         name,
         email,
         message,
       });
 
-      if (response.data.success) {
-        toast.success(response.data.message || "Message sent successfully");
+      if (data.success) {
+        toast.success(data.message || "Message sent successfully");
 
         setFormData({
           name: "",

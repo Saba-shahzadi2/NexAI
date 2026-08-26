@@ -1,108 +1,124 @@
-import { useState, useEffect } from "react";
-import { FaUsers, FaGlobe, FaTasks, FaChartLine } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { getPublicStats } from "../api/statsAPI";
 
 const Stats = () => {
   const [stats, setStats] = useState({
     users: 0,
-    uptime: 90.0, // Clean start for percentage
+    uptime: 99.9,
     countries: 0,
     tasks: 0,
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStats((prev) => {
-        if (
-          prev.users >= 50000 &&
-          prev.uptime >= 99.9 &&
-          prev.countries >= 120 &&
-          prev.tasks >= 1000000
-        ) {
-          clearInterval(interval);
-          return prev;
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      try {
+        const data = await getPublicStats();
+
+        if (isMounted && data?.success && data?.stats) {
+          setStats({
+            users: Number(data.stats.users) || 0,
+            uptime: Number(data.stats.uptime) || 99.9,
+            countries: Number(data.stats.countries) || 0,
+            tasks: Number(data.stats.tasks) || 0,
+          });
         }
+      } catch (error) {
+        console.error("Failed to fetch public stats:", error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-        return {
-          users: Math.min(prev.users + 2000, 50000),
-          uptime: Math.min(prev.uptime + 0.4, 99.9), // Smooth transition to 99.9%
-          countries: Math.min(prev.countries + 5, 120),
-          tasks: Math.min(prev.tasks + 40000, 1000000),
-        };
-      });
-    }, 40);
+    fetchStats();
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const data = [
+  const statItems = [
     {
-      icon: <FaUsers size={28} />,
-      value: `${stats.users.toLocaleString()}+`,
+      value: stats.users,
       label: "Active Users",
+      suffix: "+",
+      icon: "👥",
     },
     {
-      icon: <FaChartLine size={28} />,
-      value: `${stats.uptime.toFixed(1)}%`,
-      label: "Uptime Guarantee",
+      value: stats.uptime.toFixed(1),
+      label: "Uptime",
+      suffix: "%",
+      icon: "⚡",
     },
     {
-      icon: <FaGlobe size={28} />,
-      value: `${stats.countries}+`,
-      label: "Countries Supported",
+      value: stats.countries,
+      label: "Countries",
+      suffix: "+",
+      icon: "🌎",
     },
     {
-      icon: <FaTasks size={28} />,
-      value: `${stats.tasks.toLocaleString()}+`,
-      label: "Tasks Automated",
+      value: stats.tasks,
+      label: "Tasks Completed",
+      suffix: "+",
+      icon: "✓",
     },
   ];
 
   return (
-    // Fixed: Premium Indigo to Blue corporate gradient background
-    <section className="py-24 bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 relative overflow-hidden text-white">
-      {/* Decorative background glow shapes */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <section className="relative overflow-hidden bg-gray-50 py-20 dark:bg-gray-950">
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl" />
+      </div>
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-        {/* Heading Section */}
-        <div className="text-center mb-16" data-aos="fade-up">
-          <span className="text-blue-300 uppercase tracking-widest text-xs font-bold bg-blue-500/10 px-4 py-1.5 rounded-full border border-blue-400/20">
-            Trusted Worldwide
+      <div className="relative container mx-auto px-4">
+        {/* Section heading */}
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <span className="mb-3 inline-block rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+            NexAI by the numbers
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight mt-4">
-            Trusted Results at Scale
+
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+            Trusted by users around the world
           </h2>
-          <p className="text-blue-100/80 max-w-2xl mx-auto text-lg leading-relaxed">
-            Businesses around the world rely on NexAI to improve efficiency,
-            automate workflows, and accelerate growth.
+
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Powerful AI tools built for performance, reliability, and scale.
           </p>
         </div>
 
-        {/* Stats Glassmorphism Grid */}
-        <div
-          data-aos="fade-up"
-          data-aos-delay="100"
-          className="grid grid-cols-2 md:grid-cols-4 gap-6"
-        >
-          {data.map((item) => (
+        {/* Stats */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {statItems.map((stat) => (
             <div
-              key={item.label}
-              className="bg-white/[0.06] backdrop-blur-xl rounded-2xl p-8 text-center border border-white/10 hover:border-white/20 hover:bg-white/[0.1] hover:-translate-y-1.5 transition-all duration-300 shadow-xl flex flex-col items-center justify-center"
+              key={stat.label}
+              className="group rounded-2xl border border-gray-200 bg-white p-7 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
             >
-              {/* Icon Container */}
-              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-blue-300 mb-4 shadow-inner">
-                {item.icon}
+              {/* Icon */}
+              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl transition-transform duration-300 group-hover:scale-110 dark:bg-blue-500/10">
+                {stat.icon}
               </div>
 
-              {/* Counter Value */}
-              <h3 className="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">
-                {item.value}
-              </h3>
+              {/* Value */}
+              {loading ? (
+                <div className="mx-auto h-10 w-28 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800" />
+              ) : (
+                <p className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+                  {Number(stat.value).toLocaleString()}
+                  <span className="text-blue-600 dark:text-blue-400">
+                    {stat.suffix}
+                  </span>
+                </p>
+              )}
 
               {/* Label */}
-              <p className="text-blue-200/80 text-sm font-medium tracking-wide">
-                {item.label}
+              <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                {stat.label}
               </p>
             </div>
           ))}

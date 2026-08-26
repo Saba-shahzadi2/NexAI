@@ -25,12 +25,38 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
     },
 
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+
     resetOTP: {
       type: String,
       default: null,
     },
 
     resetOTPExpires: {
+      type: Date,
+      default: null,
+    },
+
+    resetOTPAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    resetOTPRequestedAt: {
+      type: Date,
+      default: null,
+    },
+
+    resetTokenHash: {
+      type: String,
+      default: null,
+    },
+
+    resetTokenExpires: {
       type: Date,
       default: null,
     },

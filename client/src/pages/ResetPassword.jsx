@@ -2,9 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { resetPassword } from "../api/authAPI";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -17,13 +15,12 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const email = localStorage.getItem("resetEmail");
-  const otp = localStorage.getItem("resetOTP");
+  const resetToken = sessionStorage.getItem("resetToken");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !otp) {
+    if (!resetToken) {
       toast.error("Please verify your OTP first");
       navigate("/forgot-password");
       return;
@@ -50,18 +47,17 @@ const ResetPassword = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post(`${API_URL}/auth/reset-password`, {
-        email,
-        otp,
+      const response = await resetPassword({
+        resetToken,
         newPassword: password,
       });
 
-      if (response.data.success) {
+      if (response.success) {
         toast.success("Password reset successfully");
 
         // Remove reset data
-        localStorage.removeItem("resetEmail");
-        localStorage.removeItem("resetOTP");
+        sessionStorage.removeItem("resetEmail");
+        sessionStorage.removeItem("resetToken");
 
         // Clear form
         setFormData({

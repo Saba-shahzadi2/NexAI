@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { SiNotion } from "react-icons/si";
@@ -9,21 +9,31 @@ import {
   FaTimes,
   FaUserCircle,
   FaSignOutAlt,
+  FaTachometerAlt,
 } from "react-icons/fa";
 
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(null);
 
   const { darkMode, setDarkMode } = useTheme();
+
+  const { user, isAuthenticated, logout } = useAuth();
+
   const navigate = useNavigate();
 
-  // Navigation items
+  const isAdmin = isAuthenticated && user?.role === "admin";
+
+  // ==========================================
+  // NAVIGATION ITEMS
+  // ==========================================
+
   const navItems = [
     {
       to: "/",
@@ -48,50 +58,9 @@ const Navbar = () => {
   ];
 
   // ==========================================
-  // LOAD AUTHENTICATED USER
-  // ==========================================
-  useEffect(() => {
-    const loadUser = () => {
-      const token = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-
-      if (!token || !storedUser) {
-        setUser(null);
-        return;
-      }
-
-      try {
-        const parsedUser = JSON.parse(storedUser);
-
-        if (parsedUser && parsedUser.name && parsedUser.email) {
-          setUser(parsedUser);
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Invalid user data:", error);
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        setUser(null);
-      }
-    };
-
-    // Initial auth check
-    loadUser();
-
-    // Listen for login/register/logout
-    window.addEventListener("authChange", loadUser);
-
-    return () => {
-      window.removeEventListener("authChange", loadUser);
-    };
-  }, []);
-
-  // ==========================================
   // SCROLL EFFECT
   // ==========================================
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -105,8 +74,9 @@ const Navbar = () => {
   }, []);
 
   // ==========================================
-  // BODY SCROLL LOCK FOR MOBILE MENU
+  // MOBILE BODY SCROLL LOCK
   // ==========================================
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -122,24 +92,14 @@ const Navbar = () => {
   // ==========================================
   // LOGOUT
   // ==========================================
+
   const handleLogout = () => {
-    // Remove authentication data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout();
 
-    // Update navbar immediately
-    setUser(null);
-
-    // Close mobile menu
     setIsOpen(false);
 
-    // Notify other components
-    window.dispatchEvent(new Event("authChange"));
-
-    // Show message
     toast.success("Logged out successfully");
 
-    // Always go to Home after logout
     navigate("/", {
       replace: true,
     });
@@ -148,18 +108,31 @@ const Navbar = () => {
   // ==========================================
   // CLOSE MOBILE MENU
   // ==========================================
+
   const closeMobileMenu = () => {
     setIsOpen(false);
   };
 
   // ==========================================
-  // NAVIGATION LINK STYLE
+  // NAV LINK STYLE
   // ==========================================
+
   const navLinkClass = ({ isActive }) =>
     `relative font-medium transition-colors duration-200 ${
       isActive
         ? "text-blue-600 dark:text-blue-400"
         : "text-gray-700 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-400"
+    }`;
+
+  // ==========================================
+  // DASHBOARD NAV LINK STYLE
+  // ==========================================
+
+  const dashboardLinkClass = ({ isActive }) =>
+    `flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition ${
+      isActive
+        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+        : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-gray-800 dark:hover:text-blue-400"
     }`;
 
   return (
@@ -173,10 +146,12 @@ const Navbar = () => {
       {/* ========================================
           NAVBAR CONTAINER
       ======================================== */}
+
       <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between">
         {/* ======================================
             LOGO
         ====================================== */}
+
         <NavLink
           to="/"
           onClick={closeMobileMenu}
@@ -192,19 +167,31 @@ const Navbar = () => {
         {/* ======================================
             DESKTOP NAVIGATION
         ====================================== */}
-        <div className="hidden md:flex items-center gap-8">
+
+        <div className="hidden md:flex items-center gap-7">
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={navLinkClass}>
               {item.label}
             </NavLink>
           ))}
+
+          {/* Admin Dashboard */}
+
+          {isAdmin && (
+            <NavLink to="/dashboard" className={dashboardLinkClass}>
+              <FaTachometerAlt />
+              <span>Dashboard</span>
+            </NavLink>
+          )}
         </div>
 
         {/* ======================================
             DESKTOP RIGHT CONTROLS
         ====================================== */}
+
         <div className="hidden md:flex items-center gap-4">
           {/* Theme Toggle */}
+
           <button
             type="button"
             onClick={() => setDarkMode((prev) => !prev)}
@@ -221,9 +208,11 @@ const Navbar = () => {
           {/* ====================================
               LOGGED OUT
           ==================================== */}
-          {!user ? (
+
+          {!isAuthenticated ? (
             <>
               {/* Login */}
+
               <button
                 type="button"
                 onClick={() => navigate("/login")}
@@ -233,6 +222,7 @@ const Navbar = () => {
               </button>
 
               {/* Get Started */}
+
               <button
                 type="button"
                 onClick={() => navigate("/register")}
@@ -242,20 +232,29 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            /* ====================================
-               LOGGED IN
-            ==================================== */
             <>
-              {/* User Information */}
+              {/* ====================================
+                  USER INFORMATION
+              ==================================== */}
+
               <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                 <FaUserCircle className="text-blue-600 text-xl" />
 
-                <span className="font-medium max-w-[160px] truncate">
-                  {user.name}
-                </span>
+                <div className="flex flex-col">
+                  <span className="font-medium max-w-[160px] truncate">
+                    {user?.name}
+                  </span>
+
+                  {isAdmin && (
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
+                      Administrator
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Logout */}
+
               <button
                 type="button"
                 onClick={handleLogout}
@@ -272,8 +271,10 @@ const Navbar = () => {
         {/* ======================================
             MOBILE CONTROLS
         ====================================== */}
+
         <div className="md:hidden flex items-center gap-3">
           {/* Theme */}
+
           <button
             type="button"
             onClick={() => setDarkMode((prev) => !prev)}
@@ -288,6 +289,7 @@ const Navbar = () => {
           </button>
 
           {/* Menu */}
+
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -302,10 +304,12 @@ const Navbar = () => {
       {/* ========================================
           MOBILE MENU
       ======================================== */}
+
       <AnimatePresence>
         {isOpen && (
           <>
             {/* Overlay */}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -316,6 +320,7 @@ const Navbar = () => {
             />
 
             {/* Mobile Drawer */}
+
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -327,6 +332,7 @@ const Navbar = () => {
               className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-gray-900 z-50 shadow-2xl p-6 overflow-y-auto"
             >
               {/* Close Button */}
+
               <div className="flex justify-end mb-8">
                 <button
                   type="button"
@@ -341,7 +347,8 @@ const Navbar = () => {
               {/* ==================================
                   MOBILE USER INFO
               ================================== */}
-              {user && (
+
+              {isAuthenticated && user && (
                 <div className="mb-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-3">
                     <FaUserCircle className="text-blue-600 text-3xl flex-shrink-0" />
@@ -354,6 +361,12 @@ const Navbar = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                         {user.email}
                       </p>
+
+                      {isAdmin && (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
+                          Administrator
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -362,6 +375,7 @@ const Navbar = () => {
               {/* ==================================
                   MOBILE NAVIGATION
               ================================== */}
+
               <div className="flex flex-col gap-5">
                 {navItems.map((item) => (
                   <NavLink
@@ -373,15 +387,31 @@ const Navbar = () => {
                     {item.label}
                   </NavLink>
                 ))}
+
+                {/* Mobile Admin Dashboard */}
+
+                {isAdmin && (
+                  <NavLink
+                    to="/dashboard"
+                    onClick={closeMobileMenu}
+                    className={dashboardLinkClass}
+                  >
+                    <FaTachometerAlt />
+
+                    <span>Admin Dashboard</span>
+                  </NavLink>
+                )}
               </div>
 
               {/* ==================================
                   MOBILE AUTH BUTTONS
               ================================== */}
+
               <div className="mt-8 flex flex-col gap-3">
-                {!user ? (
+                {!isAuthenticated ? (
                   <>
                     {/* Login */}
+
                     <button
                       type="button"
                       onClick={() => {
@@ -394,6 +424,7 @@ const Navbar = () => {
                     </button>
 
                     {/* Get Started */}
+
                     <button
                       type="button"
                       onClick={() => {
@@ -407,6 +438,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   /* Logout */
+
                   <button
                     type="button"
                     onClick={handleLogout}

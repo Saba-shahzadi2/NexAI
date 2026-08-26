@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 
 import AOS from "aos";
@@ -11,6 +11,16 @@ import Contact from "./pages/Contact";
 import Page404 from "./pages/Page404";
 import ScrollToTop from "./components/ScrollToTop";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminPricing from "./pages/AdminPricing";
+import AdminUsers from "./pages/AdminUsers";
+import AdminContacts from "./pages/AdminContacts";
+import AdminFAQ from "./pages/AdminFAQ";
+import AdminFeatures from "./pages/AdminFeatures";
+import AdminHowItWorks from "./pages/AdminHowItWorks";
+import AdminTestimonials from "./pages/AdminTestimonials";
 
 const Home = lazy(() => import("./pages/Home"));
 const Features = lazy(() => import("./components/Features"));
@@ -26,6 +36,8 @@ const TermsConditions = lazy(() => import("./pages/TermsConditions"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 const App = () => {
+  const location = useLocation();
+
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -34,62 +46,156 @@ const App = () => {
     });
   }, []);
 
+  const isAdminRoute = location.pathname.startsWith("/dashboard");
+
   return (
     <>
-      <Navbar />
+      {/* Public Navbar only */}
+      {!isAdminRoute && <Navbar />}
 
       <ScrollToTop />
 
       <Suspense
         fallback={
-          <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
         }
       >
         <Routes>
-          {/* Public Routes */}
+          {/* =====================================================
+              PUBLIC ROUTES
+          ===================================================== */}
+
           <Route path="/" element={<Home />} />
+
           <Route path="/about" element={<About />} />
+
           <Route path="/contact" element={<Contact />} />
 
-          {/* Protected Routes */}
+          <Route path="/features" element={<Features />} />
+
+          <Route path="/pricing" element={<Pricing />} />
+
+          {/* =====================================================
+              ADMIN ROUTES
+          ===================================================== */}
+
           <Route
-            path="/features"
+            path="/dashboard"
             element={
-              <ProtectedRoute>
-                <Features />
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/pricing"
+            path="/dashboard/pricing"
             element={
-              <ProtectedRoute>
-                <Pricing />
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminPricing />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/users"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminUsers />
+                </AdminLayout>
               </ProtectedRoute>
             }
           />
 
-          {/* Authentication */}
+          <Route
+            path="/dashboard/contacts"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminContacts />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/faq"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminFAQ />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/features"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminFeatures />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/how-it-works"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminHowItWorks />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/testimonials"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminLayout>
+                  <AdminTestimonials />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* =====================================================
+              AUTHENTICATION
+          ===================================================== */}
+
           <Route path="/register" element={<Register />} />
+
           <Route path="/login" element={<Login />} />
+
           <Route path="/forgot-password" element={<ForgotPassword />} />
+
           <Route path="/verify-otp" element={<VerifyOTP />} />
+
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Legal */}
+          {/* =====================================================
+              LEGAL
+          ===================================================== */}
+
           <Route path="/terms-conditions" element={<TermsConditions />} />
 
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-          {/* 404 */}
+          {/* =====================================================
+              404
+          ===================================================== */}
+
           <Route path="*" element={<Page404 />} />
         </Routes>
       </Suspense>
 
-      <Footer />
+      {/* Public Footer only */}
+      {!isAdminRoute && <Footer />}
     </>
   );
 };

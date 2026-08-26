@@ -1,36 +1,34 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import { getMe, logoutUser } from "../api/authAPI";
 
 const AuthContext = createContext();
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+
   const [token, setToken] = useState(() => localStorage.getItem("token"));
+
   const [loading, setLoading] = useState(true);
 
-  // Get current user from backend
-  const fetchCurrentUser = async (authToken) => {
+  // =========================================================
+  // GET CURRENT LOGGED-IN USER
+  // =========================================================
+
+  const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get(`${API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const data = await getMe();
 
-      if (response.data.success) {
-        setUser(response.data.user);
+      if (data.success) {
+        setUser(data.user);
 
-        // Keep user data updated
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } else {
+        throw new Error(data.message || "Authentication failed");
       }
     } catch (error) {
       console.error("Auth verification error:", error);
 
-      // Invalid/expired token
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      logoutUser();
 
       setToken(null);
       setUser(null);
@@ -39,18 +37,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check authentication when app loads
+  // =========================================================
+  // CHECK AUTHENTICATION ON APP LOAD
+  // =========================================================
+
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
 
     if (storedToken) {
-      fetchCurrentUser(storedToken);
+      fetchCurrentUser();
     } else {
       setLoading(false);
     }
   }, []);
 
-  // Login
+  // =========================================================
+  // LOGIN
+  // =========================================================
+
   const login = (authToken, authUser) => {
     localStorage.setItem("token", authToken);
     localStorage.setItem("user", JSON.stringify(authUser));
@@ -59,26 +63,37 @@ export const AuthProvider = ({ children }) => {
     setUser(authUser);
   };
 
-  // Logout
+  // =========================================================
+  // LOGOUT
+  // =========================================================
+
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logoutUser();
 
     setToken(null);
     setUser(null);
   };
+
+  // =========================================================
+  // CONTEXT VALUE
+  // =========================================================
 
   const value = {
     user,
     token,
     loading,
     isAuthenticated: !!token && !!user,
+    isAdmin: user?.role === "admin",
     login,
     logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+// =========================================================
+// USE AUTH
+// =========================================================
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

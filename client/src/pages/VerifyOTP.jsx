@@ -2,9 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { verifyOTP } from "../api/authAPI";
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
@@ -12,7 +10,7 @@ const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const email = localStorage.getItem("resetEmail");
+  const email = sessionStorage.getItem("resetEmail");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,13 +29,10 @@ const VerifyOTP = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post(`${API_URL}/auth/verify-otp`, {
-        email,
-        otp,
-      });
+      const response = await verifyOTP({ email, otp });
 
-      if (response.data.success) {
-        localStorage.setItem("resetOTP", otp);
+      if (response.success && response.resetToken) {
+        sessionStorage.setItem("resetToken", response.resetToken);
 
         toast.success("OTP verified successfully");
 

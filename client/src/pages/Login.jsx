@@ -3,9 +3,8 @@ import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+import { useAuth } from "../context/AuthContext";
+import { loginUser } from "../api/authAPI";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,6 +12,8 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -55,33 +56,18 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_URL}/auth/login`,
-        {
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      const data = response.data;
+      // Centralized API call
+      const data = await loginUser({
+        email,
+        password,
+      });
 
       if (!data.success) {
         throw new Error(data.message || "Login failed");
       }
 
-      // Save JWT
-      localStorage.setItem("token", data.token);
-
-      // Save user
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Update Navbar immediately
-      window.dispatchEvent(new Event("authChange"));
+      // Update global authentication state
+      login(data.token, data.user);
 
       toast.success(data.message || "Login successful");
 
