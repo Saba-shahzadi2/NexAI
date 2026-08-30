@@ -1,3 +1,5 @@
 {
-  "rootDir": "server"
+  "rootDir": "server",
+  "buildpack": "node",
+  "startCommand": "npm start"
 }
